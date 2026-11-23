@@ -1,0 +1,46 @@
+{
+  "AS_point_0.fuelburn": 91328.55111032195,
+  "AS_point_0.CL": 0.5000000000000033,
+  "AS_point_0.CD": 0.023627326254534113,
+  "AS_point_0.wing_perf.CDi": 0.009812363963425644,
+  "AS_point_0.wing_perf.CDv": 0.005971584115057602,
+  "AS_point_0.wing_perf.CDw": 4.337817605086786e-05,
+  "AS_point_1.CL": 0.5746902706542436,
+  "wing.structural_mass": 24483.83012871064,
+  "AS_point_1.wing_perf.failure": 0.3357499269811447,
+  "fuel_vol_delta.fuel_vol_delta": -1.044838384888422,
+  "alpha": 0.026467330480769113,
+  "alpha_maneuver": 2.1801168847702934,
+  "fuel_mass": 91328.55111060217,
+  "AS_point_0.coupled.wing.S_ref": 409.9518225251575,
+  "wing.twist_cp": [
+    4.0,
+    5.0,
+    8.0,
+    9.0
+  ],
+  "wing.spar_thickness_cp": [
+    0.004,
+    0.005,
+    0.008,
+    0.01
+  ],
+  "wing.skin_thickness_cp": [
+    0.005,
+    0.01,
+    0.015,
+    0.025
+  ],
+  "wing.geometry.t_over_c_cp": [
+    0.08,
+    0.08,
+    0.1,
+    0.08
+  ],
+  "L_over_D": 21.161937436913867,
+  "wingbox_mass_kg": 19587.064102968514,
+  "num_y": 15,
+  "driver_success": true,
+  "driver_iterations": 5,
+  "wall_time_s": 1.8732690811157227
+}
