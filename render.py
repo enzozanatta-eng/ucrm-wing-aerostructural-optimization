@@ -113,9 +113,6 @@ def base_plotter(size=(2600, 1500)):
     return p
 
 
-SBAR = dict(title="von Mises / allowable [-]\n", color="black", title_font_size=24, label_font_size=22,
-            n_labels=11, fmt="%.1f", vertical=True, position_x=0.88, position_y=0.20, height=0.6, width=0.035,
-            font_family="arial")
 
 
 def hero(path):
@@ -128,11 +125,8 @@ def hero(path):
                                            non_manifold_edges=False), color="black", line_width=1.5)
     for part in aircraft_context():
         p.add_mesh(part, color="#d9d9d9", smooth_shading=True, opacity=0.55)
-    p.add_scalar_bar(mapper=act.mapper, **SBAR)
     p.camera_position = [(-30, 78, 46), (34, 0, 7.0), (0.32, -0.25, 0.91)]
     p.camera.zoom(1.15)
-    p.add_axes(color="black", line_width=3, labels_off=False)
-    p.add_text("Deformed shape at n = 2.5 (true scale). Black outline: jig shape.", position="upper_left", font_size=12, color="black")
     p.screenshot(path, transparent_background=False)
     p.close()
 
@@ -167,3 +161,99 @@ def autocrop(path, pad=30):
 
 if __name__ == "__main__":
     autocrop("figures/01_wing_3d_stress_2p5g.png")
+
+
+def wing_surfaces(name, point_key="AS_point_1"):
+    """Return (left, right) surfaces of a case, colored by 2.5 g stress utilization."""
+    global tc_n, ut_n
+    b = np.load(f"results/{name}.npz")
+    tc_n = np.interp(node, node[:-1] + 0.5, b["wing__t_over_c"][0])
+    ut_n = np.interp(node, node[:-1] + 0.5, b["AS_point_1__wing_perf__vonmises"].max(axis=1) / ALLOW)
+    m = b[f"{point_key}__coupled__wing__def_mesh"]
+    return [section_points(m, s) for s in (False, True)], b["wing__mesh"]
+
+
+def compare_baseline(path):
+    """Baseline vs realistic optimum at 2.5 g, same color scale, overstress highlighted."""
+    p = pv.Plotter(off_screen=True, window_size=(2800, 1150), shape=(1, 2), border=False, lighting="none")
+    for col, (name, title) in enumerate([("baseline_ny31", "Baseline (initial uCRM design)"),
+                                         ("realistic_ny31", "Realistic optimum")]):
+        p.subplot(0, col)
+        p.set_background("white"); p.enable_lightkit()
+        surfs, jig = wing_surfaces(name)
+        for g in surfs:
+            act = p.add_mesh(g, scalars="util", cmap="jet", clim=(0, 1.0), n_colors=10, above_color="magenta",
+                             show_scalar_bar=False)
+        for s in (False, True):
+            gj = section_points(jig, s)
+            p.add_mesh(gj.extract_feature_edges(boundary_edges=True, feature_edges=False, manifold_edges=False,
+                                                non_manifold_edges=False), color="black", line_width=1.2)
+        p.add_mesh(fuselage(), color="#d9d9d9", opacity=0.45, smooth_shading=True)
+        p.camera_position = [(-30, 78, 46), (34, 0, 7.0), (0.32, -0.25, 0.91)]
+        p.camera.zoom(1.0)
+    p.subplot(0, 1)
+    p.link_views()
+    p.screenshot(path)
+    p.close()
+    autocrop(path)
+
+
+def top_view(path):
+    """Planform seen from above at 2.5 g, realistic optimum, with a mesh overlay."""
+    p = base_plotter((2600, 1500))
+    surfs, jig = wing_surfaces("realistic_ny31")
+    for g in surfs:
+        act = p.add_mesh(g, scalars="util", cmap="jet", clim=(0, 1), n_colors=10, show_scalar_bar=False)
+    dm = np.load("results/realistic_ny31.npz")["AS_point_1__coupled__wing__def_mesh"].copy()
+    dm[..., 2] += 3.0  # lift the panel grid above the surface so it stays visible from the top
+    vlm = pv.StructuredGrid(dm[..., 0], dm[..., 1], dm[..., 2])
+    p.add_mesh(vlm, style="wireframe", color="black", line_width=1.0, opacity=0.6)
+    p.add_mesh(fuselage(), color="#d9d9d9", opacity=0.45, smooth_shading=True)
+    p.view_xy(); p.camera.roll = 90; p.enable_parallel_projection(); p.camera.zoom(1.25)
+    p.screenshot(path)
+    p.close()
+    autocrop(path)
+
+
+if __name__ == "__main__":
+    compare_baseline("figures/08_baseline_vs_optimum_3d.png")
+    top_view("figures/09_top_view_stress.png")
+
+
+def annotate(path, note=None, over=False, titles=None):
+    """Add a discrete colorbar and captions in Liberation Sans (metric compatible with Arial)."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    from matplotlib import colors as mcolors, cm as mcm
+    plt.rcParams["font.family"] = "Liberation Sans"
+    img = plt.imread(path)
+    h, w = img.shape[:2]
+    W = 11.0
+    top = 0.45 if (note or titles) else 0.1
+    H = W * h / w + 1.15 + top
+    fig = plt.figure(figsize=(W, H), facecolor="white")
+    ax = fig.add_axes([0, 1.15 / H, 1, (W * h / w) / H]); ax.imshow(img); ax.axis("off")
+    cmap = plt.get_cmap("jet", 10)
+    if over:
+        cmap = cmap.with_extremes(over="magenta")
+    norm = mcolors.BoundaryNorm(np.linspace(0, 1, 11), cmap.N)
+    cax = fig.add_axes([0.25, 0.55 / H, 0.5, 0.18 / H])
+    cb = fig.colorbar(mcm.ScalarMappable(norm, cmap), cax=cax, orientation="horizontal", extend="max" if over else "neither",
+                      ticks=np.linspace(0, 1, 11))
+    cb.ax.tick_params(labelsize=9)
+    cb.set_label("von Mises stress / allowable (280 MPa) at n = 2.5  [-]" + ("   (magenta: above allowable)" if over else ""), fontsize=10)
+    if note:
+        fig.text(0.01, 1 - 0.3 / H, note, fontsize=10, va="center")
+    if titles:
+        for x, t in titles:
+            fig.text(x, 1 - 0.3 / H, t, fontsize=12, weight="bold", ha="center", va="center")
+    fig.savefig(path, dpi=220)
+    plt.close(fig)
+
+
+if __name__ == "__main__":
+    annotate("figures/01_wing_3d_stress_2p5g.png", note="Deformed shape at n = 2.5, true scale. Black outline: jig (unloaded) shape. Fuselage and tail illustrative only.")
+    annotate("figures/08_baseline_vs_optimum_3d.png", over=True,
+             titles=[(0.25, "Baseline (initial uCRM design)"), (0.75, "Realistic optimum")])
+    annotate("figures/09_top_view_stress.png", note="Top view at n = 2.5. Black grid: VLM panels used by the solver (one half shown).")

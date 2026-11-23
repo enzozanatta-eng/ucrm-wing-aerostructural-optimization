@@ -14,7 +14,7 @@ ALLOW = 420e6 / 1.5  # yield / safety factor [Pa]
 CT, RANGE = 0.53 / 3600, 14.307e6
 W0_FIXED = 128000 + 15000 + 2 * 10000  # payload+empty (OAS W0) + reserve + 2 engines [kg]
 
-plt.rcParams.update({"font.family": "DejaVu Sans", "font.size": 9.5, "axes.grid": True, "grid.alpha": 0.35,
+plt.rcParams.update({"font.family": "Liberation Sans", "font.size": 9.5, "axes.grid": True, "grid.alpha": 0.35,
                      "grid.linestyle": ":", "figure.dpi": 150, "axes.edgecolor": "black", "axes.linewidth": 0.8,
                      "legend.frameon": True, "legend.framealpha": 1.0, "legend.edgecolor": "0.6", "legend.fancybox": False,
                      "axes.titlesize": 10.5, "axes.titleweight": "bold", "xtick.direction": "in", "ytick.direction": "in",

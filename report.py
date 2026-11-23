@@ -9,10 +9,10 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from PIL import Image as PILImage
 
-F = "/usr/share/fonts/truetype/crosextra/"
-pdfmetrics.registerFont(TTFont("C", F + "Carlito-Regular.ttf"))
-pdfmetrics.registerFont(TTFont("CB", F + "Carlito-Bold.ttf"))
-pdfmetrics.registerFont(TTFont("CI", F + "Carlito-Italic.ttf"))
+F = "/usr/share/fonts/truetype/liberation/"
+pdfmetrics.registerFont(TTFont("C", F + "LiberationSans-Regular.ttf"))
+pdfmetrics.registerFont(TTFont("CB", F + "LiberationSans-Bold.ttf"))
+pdfmetrics.registerFont(TTFont("CI", F + "LiberationSans-Italic.ttf"))
 from reportlab.pdfbase.pdfmetrics import registerFontFamily
 registerFontFamily("C", normal="C", bold="CB", italic="CI", boldItalic="CB")
 
@@ -108,6 +108,8 @@ s += [Paragraph("2. Results", H1), table(rows, [W * 0.31, W * 0.21, W * 0.24, W 
                 "toward the elliptic distribution, stopping short of it because outboard load raises the root bending moment and "
                 "therefore wingbox weight. This is the expected aerostructural compromise.", CAP),
       fig("figures/07_front_view_deflection.png", W * 0.85),
+      fig("figures/08_baseline_vs_optimum_3d.png"),
+      Paragraph("Figure 4b. Baseline and realistic optimum at 2.5 g on the same color scale; magenta marks stress above the allowable.", CAP),
       Paragraph("Figure 4. Leading edge vertical position of the realistic optimum, equal axis scale. Tip deflection is 1.8 m in cruise and 4.3 m at 2.5 g, 15% of the semi-span.", CAP),
       fig("figures/04_stress_utilization.png", W * 0.82),
       Paragraph("Figure 5. Wingbox stress utilization at 2.5 g. The baseline exceeds the allowable by up to 20% between 25% and 50% "
